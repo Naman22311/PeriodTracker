@@ -21,6 +21,11 @@ def update_period_date(record_id, start_date, end_date):
     c.execute("UPDATE periods SET start_date = ?, end_date = ? WHERE id = ?", (start_date, end_date, record_id))
     conn.commit()
 
+# Function to delete period date
+def delete_period_date(record_id):
+    c.execute("DELETE FROM periods WHERE id = ?", (record_id,))
+    conn.commit()
+
 # Function to fetch period dates
 def get_period_dates():
     c.execute("SELECT id, start_date, end_date FROM periods")
@@ -49,11 +54,17 @@ if period_records:
     record_options = {f"ID {rec[0]}: {rec[1]} - {rec[2]}": rec[0] for rec in period_records}
     selected_record = st.sidebar.selectbox("Select a record to modify", list(record_options.keys()))
     selected_id = record_options[selected_record]
-    new_start_date = st.sidebar.date_input("New Start Date", datetime.date.today()).strftime("%d/%m/%y")
-    new_end_date = st.sidebar.date_input("New End Date", datetime.date.today()).strftime("%d/%m/%y")
+    current_start, current_end = [(rec[1], rec[2]) for rec in period_records if rec[0] == selected_id][0]
+    new_start_date = st.sidebar.date_input("New Start Date", datetime.datetime.strptime(current_start, "%d/%m/%y")).strftime("%d/%m/%y")
+    new_end_date = st.sidebar.date_input("New End Date", datetime.datetime.strptime(current_end, "%d/%m/%y")).strftime("%d/%m/%y")
+    
     if st.sidebar.button("Update Period Date"):
         update_period_date(selected_id, new_start_date, new_end_date)
         st.sidebar.success("Period entry updated!")
+    
+    if st.sidebar.button("Delete Period Entry"):
+        delete_period_date(selected_id)
+        st.sidebar.success("Period entry deleted!")
 
 # Calendar view of periods
 st.subheader("Your Period Calendar")
@@ -62,7 +73,6 @@ df_calendar = pd.DataFrame(period_dates, columns=["Start Date", "End Date"])
 df_calendar["Start Date"] = pd.to_datetime(df_calendar["Start Date"], format="%d/%m/%y").dt.strftime("%d/%m/%y")
 df_calendar["End Date"] = pd.to_datetime(df_calendar["End Date"], format="%d/%m/%y").dt.strftime("%d/%m/%y")
 st.dataframe(df_calendar, height=400, width=800)
-
 
 
 # Prediction Logic
