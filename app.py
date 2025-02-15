@@ -89,4 +89,3 @@ if period_records:
 else:
     st.write("No period data recorded yet.")
 
-st.success("Your data is stored securely in a local database.")
